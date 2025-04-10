@@ -1,57 +1,67 @@
-class InvoiceModel {
-  final String companyName;
-  final String companyTagline;
-  final String companyEmail;
-  final String invoiceNumber;
-  final String issueDate;
-  final String clientName;
-  final String clientAddress;
-  final String clientPhone;
-  final String clientEmail;
-  final String accountNumber;
-  final String bankCode;
-  final String branchName;
-  final String description;
-  final List<InvoiceItem> items;
-  final String termsAndConditions;
-  final String signatureName;
-  final String signatureTitle;
+class ResumeModel {
+  final String fullName;
+  final String email;
+  final String phone;
+  final String address;
+  final String summary;
+  final List<Education> education;
+  final List<Certification> certifications;
+  final List<String> skills;
+  final List<Project> projects;
+  final String linkedin; // Optional for professional touch
+  final String github;   // Optional for developers
 
-  InvoiceModel({
-    required this.companyName,
-    required this.companyTagline,
-    required this.companyEmail,
-    required this.invoiceNumber,
-    required this.issueDate,
-    required this.clientName,
-    required this.clientAddress,
-    required this.clientPhone,
-    required this.clientEmail,
-    required this.accountNumber,
-    required this.bankCode,
-    required this.branchName,
-    required this.description,
-    required this.items,
-    required this.termsAndConditions,
-    required this.signatureName,
-    required this.signatureTitle,
+  ResumeModel({
+    required this.fullName,
+    required this.email,
+    required this.phone,
+    required this.address,
+    required this.summary,
+    required this.education,
+    required this.certifications,
+    required this.skills,
+    required this.projects,
+    required this.linkedin,
+    required this.github,
   });
-
-  double get subtotal => items.fold(0, (sum, item) => sum + (item.price * item.quantity));
-  double get tax => 0; // Modify if you want tax
-  double get total => subtotal + tax;
 }
 
-class InvoiceItem {
-  final String description;
-  final double price;
-  final int quantity;
+class Education {
+  final String degree;
+  final String institution;
+  final String year;
+  final String details; // e.g., GPA or honors
 
-  InvoiceItem({
-    required this.description,
-    required this.price,
-    required this.quantity,
+  Education({
+    required this.degree,
+    required this.institution,
+    required this.year,
+    required this.details,
   });
+}
 
-  double get total => price * quantity;
+class Certification {
+  final String name;
+  final String issuer;
+  final String year;
+
+  Certification({
+    required this.name,
+    required this.issuer,
+    required this.year,
+  });
+}
+
+class Project {
+  final String title;
+  final String description;
+  final String technologies;
+  final String duration;
+
+  Project({
+    required this.title,
+    required this.description,
+    required this.technologies,
+    required this.duration,
+  });
 }
