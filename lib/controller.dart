@@ -87,129 +87,430 @@ class ResumeController extends GetxController {
     final Size pageSize = page.getClientSize();
     final PdfGraphics graphics = page.graphics;
 
-    // Colors
-    final PdfColor darkColor = PdfColor(33, 33, 33); // Dark gray
-    final PdfColor lightGrayColor = PdfColor(240, 240, 240); // Light gray for sidebar
-    final PdfColor blueColor = PdfColor(33, 150, 243); // Blue for headers
+    // Define theme colors (based on examples)
+    final PdfColor primaryColor = PdfColor(33, 37, 41); // Dark for text
+    final PdfColor secondaryColor = PdfColor(52, 58, 64); // For section headers
+    final PdfColor accentColor = PdfColor(0, 123, 255); // Blue accent
+    final PdfColor lightBgColor = PdfColor(240, 240, 240); // Light gray for sidebar
+    final PdfColor darkBgColor = PdfColor(52, 58, 64); // Dark for header areas
     final PdfColor whiteColor = PdfColor(255, 255, 255);
 
+    // Choose theme based on preference (could be user-selectable)
+    bool useDarkTheme = false; // Set to true for dark header theme like in image 2
+
     // Fonts
-    final PdfFont headerFont = PdfStandardFont(PdfFontFamily.helvetica, 24, style: PdfFontStyle.bold);
-    final PdfFont subHeaderFont = PdfStandardFont(PdfFontFamily.helvetica, 14, style: PdfFontStyle.bold);
+    final PdfFont nameFont = PdfStandardFont(PdfFontFamily.helvetica, 28, style: PdfFontStyle.bold);
+    final PdfFont titleFont = PdfStandardFont(PdfFontFamily.helvetica, 16);
+    final PdfFont sectionHeaderFont = PdfStandardFont(PdfFontFamily.helvetica, 16, style: PdfFontStyle.bold);
     final PdfFont normalFont = PdfStandardFont(PdfFontFamily.helvetica, 10);
     final PdfFont boldFont = PdfStandardFont(PdfFontFamily.helvetica, 10, style: PdfFontStyle.bold);
+    final PdfFont smallFont = PdfStandardFont(PdfFontFamily.helvetica, 9);
 
-    // Two-column layout
+    // Layout dimensions
     const double sidebarWidth = 180;
-    const double mainContentWidth = 360;
-    const double margin = 30;
+    double mainContentWidth = pageSize.width - sidebarWidth;
+    const double contentMargin = 20;
+    const double headerHeight = 100; // Height of the top header area
 
-    // Sidebar (Left Column)
-    graphics.drawRectangle(brush: PdfSolidBrush(lightGrayColor), bounds: Rect.fromLTWH(0, 0, sidebarWidth, pageSize.height));
+    // Draw header background
+    if (useDarkTheme) {
+      // Dark header similar to image 2
+      graphics.drawRectangle(
+          brush: PdfSolidBrush(darkBgColor),
+          bounds: Rect.fromLTWH(0, 0, pageSize.width, headerHeight)
+      );
+    } else {
+      // Light header similar to image 1
+      graphics.drawRectangle(
+          brush: PdfSolidBrush(PdfColor(230, 242, 255)),  // Light blue from image 1
+          bounds: Rect.fromLTWH(0, 0, pageSize.width, headerHeight)
+      );
+    }
 
-    // Main Content (Right Column)
-    double yPos = 20;
+    // Draw sidebar background
+    graphics.drawRectangle(
+        brush: PdfSolidBrush(lightBgColor),
+        bounds: Rect.fromLTWH(0, useDarkTheme ? headerHeight : 0, sidebarWidth, pageSize.height)
+    );
 
-    // Header (Name and Job Title)
-    graphics.drawString(resume.value.fullName.toUpperCase(), headerFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(sidebarWidth + margin, yPos, mainContentWidth, 30));
-    yPos += 30;
-    graphics.drawString(resume.value.jobTitle, normalFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(sidebarWidth + margin, yPos, mainContentWidth, 20));
-    yPos += 30;
+    // Header content (Name and title)
+    double yPos = 30;
+    PdfColor headerTextColor = useDarkTheme ? whiteColor : primaryColor;
+
+    // Draw decorative elements like in Image 1
+    if (!useDarkTheme) {
+      // Left header line
+      graphics.drawLine(
+          PdfPen(primaryColor, width: 0.5),
+          Offset(50, yPos + 15),
+          Offset(170, yPos + 15)
+      );
+      // Circle
+      graphics.drawEllipse(
+          Rect.fromCenter(center: Offset(175, yPos + 15), width: 6, height: 6),
+          pen: PdfPen(primaryColor, width: 0.5)
+      );
+
+      // Right header line
+      graphics.drawLine(
+          PdfPen(primaryColor, width: 0.5),
+          Offset(pageSize.width - 50, yPos + 15),
+          Offset(pageSize.width - 170, yPos + 15)
+      );
+      // Circle
+      graphics.drawEllipse(
+          Rect.fromCenter(center: Offset(pageSize.width - 175, yPos + 15), width: 6, height: 6),
+          pen: PdfPen(primaryColor, width: 0.5)
+      );
+    }
+
+    // Name centered
+    final Size nameSize = nameFont.measureString(resume.value.fullName.toUpperCase());
+    graphics.drawString(
+        resume.value.fullName.toUpperCase(),
+        nameFont,
+        brush: PdfSolidBrush(headerTextColor),
+        bounds: Rect.fromLTWH((pageSize.width - nameSize.width) / 2, yPos, pageSize.width, 40)
+    );
+    yPos += 40;
+
+    // Job title centered
+    final Size titleSize = titleFont.measureString(resume.value.jobTitle);
+    graphics.drawString(
+        resume.value.jobTitle,
+        titleFont,
+        brush: PdfSolidBrush(headerTextColor),
+        bounds: Rect.fromLTWH((pageSize.width - titleSize.width) / 2, yPos, pageSize.width, 25)
+    );
+
+    // Reset positions for content sections
+    double sidebarYPos = useDarkTheme ? headerHeight + 30 : 120;
+    yPos = useDarkTheme ? headerHeight + 30 : 120;
+
+    // Photo placeholder if desired (like in Image 2)
+    if (useDarkTheme) {
+      // Draw circular photo frame in sidebar
+      final double photoSize = 120;
+      final double photoX = (sidebarWidth - photoSize) / 2;
+      final double photoY = headerHeight + 30;
+
+      // Photo background circle
+      graphics.drawEllipse(
+          Rect.fromLTWH(photoX, photoY, photoSize, photoSize),
+          brush: PdfSolidBrush(PdfColor(220, 220, 220))
+      );
+
+      // Placeholder text for photo
+      final PdfFont photoFont = PdfStandardFont(PdfFontFamily.helvetica, 8);
+      final String photoText = "PHOTO";
+      final Size photoTextSize = photoFont.measureString(photoText);
+      graphics.drawString(
+          photoText,
+          photoFont,
+          brush: PdfSolidBrush(PdfColor(150, 150, 150)),
+          bounds: Rect.fromLTWH(
+              photoX + (photoSize - photoTextSize.width) / 2,
+              photoY + photoSize / 2,
+              photoTextSize.width,
+              photoTextSize.height
+          )
+      );
+
+      sidebarYPos += photoSize + 30;
+    }
 
     // Sidebar Content
-    double sidebarYPos = 20;
+    // CONTACT SECTION
+    drawSectionHeader(graphics, 'CONTACT', contentMargin, sidebarYPos, sidebarWidth - 2 * contentMargin, sectionHeaderFont, accentColor, useDarkTheme);
+    sidebarYPos += 30;
 
-    // Contact Section (Sidebar)
-    graphics.drawString('CONTACT', subHeaderFont, brush: PdfSolidBrush(blueColor), bounds: Rect.fromLTWH(margin, sidebarYPos, sidebarWidth - 2 * margin, 20));
-    sidebarYPos += 25;
-    graphics.drawString('Phone: ${resume.value.phone}', normalFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(margin, sidebarYPos, sidebarWidth - 2 * margin, 20));
+    // Phone with icon-like element
+    drawContactItem(graphics, '📱', '+123-456-7890', contentMargin, sidebarYPos, sidebarWidth - 2 * contentMargin, normalFont, primaryColor);
     sidebarYPos += 20;
-    graphics.drawString('Email: ${resume.value.email}', normalFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(margin, sidebarYPos, sidebarWidth - 2 * margin, 20));
+
+    // Email with icon-like element
+    drawContactItem(graphics, '✉️', resume.value.email, contentMargin, sidebarYPos, sidebarWidth - 2 * contentMargin, normalFont, primaryColor);
     sidebarYPos += 20;
-    graphics.drawString('Address: ${resume.value.address}', normalFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(margin, sidebarYPos, sidebarWidth - 2 * margin, 20));
+
+    // Address with icon-like element
+    drawContactItem(graphics, '📍', resume.value.address, contentMargin, sidebarYPos, sidebarWidth - 2 * contentMargin, normalFont, primaryColor);
     sidebarYPos += 20;
+
+    // Website with icon-like element
     if (resume.value.website.isNotEmpty) {
-      graphics.drawString('Website: ${resume.value.website}', normalFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(margin, sidebarYPos, sidebarWidth - 2 * margin, 20));
-      sidebarYPos += 30;
-    } else {
-      sidebarYPos += 10;
+      drawContactItem(graphics, '🌐', resume.value.website, contentMargin, sidebarYPos, sidebarWidth - 2 * contentMargin, normalFont, primaryColor);
+      sidebarYPos += 25;
     }
+    sidebarYPos += 15;
 
-    // Education Section (Sidebar)
-    graphics.drawString('EDUCATION', subHeaderFont, brush: PdfSolidBrush(blueColor), bounds: Rect.fromLTWH(margin, sidebarYPos, sidebarWidth - 2 * margin, 20));
-    sidebarYPos += 25;
+    // EDUCATION SECTION
+    drawSectionHeader(graphics, 'EDUCATION', contentMargin, sidebarYPos, sidebarWidth - 2 * contentMargin, sectionHeaderFont, accentColor, useDarkTheme);
+    sidebarYPos += 30;
+
     for (var edu in resume.value.education) {
-      graphics.drawString(edu.period, normalFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(margin, sidebarYPos, sidebarWidth - 2 * margin, 20));
+      // Period (years)
+      graphics.drawString(
+          edu.period,
+          boldFont,
+          brush: PdfSolidBrush(primaryColor),
+          bounds: Rect.fromLTWH(contentMargin, sidebarYPos, sidebarWidth - 2 * contentMargin, 20)
+      );
+      sidebarYPos += 18;
+
+      // Institution name
+      graphics.drawString(
+          edu.institution.toUpperCase(),
+          boldFont,
+          brush: PdfSolidBrush(secondaryColor),
+          bounds: Rect.fromLTWH(contentMargin, sidebarYPos, sidebarWidth - 2 * contentMargin, 20)
+      );
+      sidebarYPos += 18;
+
+      // Degree
+      graphics.drawString(
+          '• ${edu.degree}',
+          normalFont,
+          brush: PdfSolidBrush(primaryColor),
+          bounds: Rect.fromLTWH(contentMargin, sidebarYPos, sidebarWidth - 2 * contentMargin, 20)
+      );
       sidebarYPos += 15;
-      graphics.drawString(edu.institution, boldFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(margin, sidebarYPos, sidebarWidth - 2 * margin, 20));
-      sidebarYPos += 15;
-      graphics.drawString(edu.degree, normalFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(margin, sidebarYPos, sidebarWidth - 2 * margin, 20));
-      sidebarYPos += 15;
+
+      // GPA if available
       if (edu.gpa.isNotEmpty) {
-        graphics.drawString('GPA: ${edu.gpa}', normalFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(margin, sidebarYPos, sidebarWidth - 2 * margin, 20));
-        sidebarYPos += 20;
+        graphics.drawString(
+            '• GPA: ${edu.gpa}',
+            normalFont,
+            brush: PdfSolidBrush(primaryColor),
+            bounds: Rect.fromLTWH(contentMargin, sidebarYPos, sidebarWidth - 2 * contentMargin, 20)
+        );
+        sidebarYPos += 15;
       }
+
       sidebarYPos += 10;
     }
 
-    // Skills Section (Sidebar)
-    graphics.drawString('SKILLS', subHeaderFont, brush: PdfSolidBrush(blueColor), bounds: Rect.fromLTWH(margin, sidebarYPos, sidebarWidth - 2 * margin, 20));
-    sidebarYPos += 25;
+    // SKILLS SECTION
+    drawSectionHeader(graphics, 'SKILLS', contentMargin, sidebarYPos, sidebarWidth - 2 * contentMargin, sectionHeaderFont, accentColor, useDarkTheme);
+    sidebarYPos += 30;
+
     for (var skill in resume.value.skills) {
-      graphics.drawString('• $skill', normalFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(margin, sidebarYPos, sidebarWidth - 2 * margin, 20));
+      graphics.drawString(
+          '• $skill',
+          normalFont,
+          brush: PdfSolidBrush(primaryColor),
+          bounds: Rect.fromLTWH(contentMargin, sidebarYPos, sidebarWidth - 2 * contentMargin, 20)
+      );
       sidebarYPos += 15;
     }
-    sidebarYPos += 10;
+    sidebarYPos += 15;
 
-    // Languages Section (Sidebar)
-    graphics.drawString('LANGUAGES', subHeaderFont, brush: PdfSolidBrush(blueColor), bounds: Rect.fromLTWH(margin, sidebarYPos, sidebarWidth - 2 * margin, 20));
-    sidebarYPos += 25;
+    // LANGUAGES SECTION
+    drawSectionHeader(graphics, 'LANGUAGES', contentMargin, sidebarYPos, sidebarWidth - 2 * contentMargin, sectionHeaderFont, accentColor, useDarkTheme);
+    sidebarYPos += 30;
+
     for (var lang in resume.value.languages) {
-      graphics.drawString('• ${lang.name}: ${lang.proficiency}', normalFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(margin, sidebarYPos, sidebarWidth - 2 * margin, 20));
+      graphics.drawString(
+          '• ${lang.name}: ${lang.proficiency}',
+          normalFont,
+          brush: PdfSolidBrush(primaryColor),
+          bounds: Rect.fromLTWH(contentMargin, sidebarYPos, sidebarWidth - 2 * contentMargin, 20)
+      );
       sidebarYPos += 15;
     }
 
     // Main Content (Right Column)
-    // Profile Summary
-    graphics.drawString('PROFILE SUMMARY', subHeaderFont, brush: PdfSolidBrush(blueColor), bounds: Rect.fromLTWH(sidebarWidth + margin, yPos, mainContentWidth, 20));
-    yPos += 25;
-    graphics.drawString(resume.value.profileSummary, normalFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(sidebarWidth + margin, yPos, mainContentWidth, 40));
-    yPos += 50;
+    // PROFILE SUMMARY
+    drawSectionHeader(graphics, 'PROFILE SUMMARY', sidebarWidth + contentMargin, yPos, mainContentWidth - 2 * contentMargin, sectionHeaderFont, accentColor, useDarkTheme);
+    yPos += 30;
 
-    // Work Experience
-    graphics.drawString('WORK EXPERIENCE', subHeaderFont, brush: PdfSolidBrush(blueColor), bounds: Rect.fromLTWH(sidebarWidth + margin, yPos, mainContentWidth, 20));
-    yPos += 25;
+    final PdfStringFormat paragraphFormat = PdfStringFormat(
+        alignment: PdfTextAlignment.justify,
+        lineSpacing: 5
+    );
+
+    graphics.drawString(
+        resume.value.profileSummary,
+        normalFont,
+        brush: PdfSolidBrush(primaryColor),
+        bounds: Rect.fromLTWH(sidebarWidth + contentMargin, yPos, mainContentWidth - 2 * contentMargin, 100),
+        format: paragraphFormat
+    );
+    yPos += calculateTextHeight(resume.value.profileSummary, normalFont, mainContentWidth - 2 * contentMargin) + 20;
+
+    // WORK EXPERIENCE
+    drawSectionHeader(graphics, 'PROFESSIONAL EXPERIENCE', sidebarWidth + contentMargin, yPos, mainContentWidth - 2 * contentMargin, sectionHeaderFont, accentColor, useDarkTheme);
+    yPos += 30;
+
     for (var exp in resume.value.workExperience) {
-      graphics.drawString(exp.company, boldFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(sidebarWidth + margin, yPos, mainContentWidth, 20));
-      yPos += 15;
-      graphics.drawString('${exp.position} (${exp.period})', normalFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(sidebarWidth + margin, yPos, mainContentWidth, 20));
+      // Create header row with company and date on same line
+      graphics.drawString(
+          exp.company,
+          boldFont,
+          brush: PdfSolidBrush(secondaryColor),
+          bounds: Rect.fromLTWH(sidebarWidth + contentMargin, yPos, mainContentWidth / 2 - contentMargin, 20)
+      );
+
+      // Right-aligned date
+      graphics.drawString(
+          exp.period,
+          boldFont,
+          brush: PdfSolidBrush(accentColor),
+          bounds: Rect.fromLTWH(sidebarWidth + mainContentWidth / 2, yPos, mainContentWidth / 2 - contentMargin, 20),
+          format: PdfStringFormat(alignment: PdfTextAlignment.right)
+      );
       yPos += 20;
+
+      // Position
+      graphics.drawString(
+          exp.position,
+          boldFont,
+          brush: PdfSolidBrush(primaryColor),
+          bounds: Rect.fromLTWH(sidebarWidth + contentMargin, yPos, mainContentWidth - 2 * contentMargin, 20)
+      );
+      yPos += 20;
+
+      // Draw a subtle divider line
+      graphics.drawLine(
+          PdfPen(PdfColor(200, 200, 200), width: 0.5),
+          Offset(sidebarWidth + contentMargin, yPos - 5),
+          Offset(pageSize.width - contentMargin, yPos - 5)
+      );
+
+      // Responsibilities as bullet points
       for (var responsibility in exp.responsibilities) {
-        graphics.drawString('• $responsibility', normalFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(sidebarWidth + margin, yPos, mainContentWidth, 20));
-        yPos += 15;
+        graphics.drawString(
+            '• $responsibility',
+            normalFont,
+            brush: PdfSolidBrush(primaryColor),
+            bounds: Rect.fromLTWH(sidebarWidth + contentMargin + 10, yPos, mainContentWidth - 2 * contentMargin - 10, 40),
+            format: paragraphFormat
+        );
+        yPos += calculateTextHeight('• $responsibility', normalFont, mainContentWidth - 2 * contentMargin - 10) + 5;
       }
-      yPos += 10;
+
+      yPos += 15;
     }
 
-    // References
-    graphics.drawString('REFERENCES', subHeaderFont, brush: PdfSolidBrush(blueColor), bounds: Rect.fromLTWH(sidebarWidth + margin, yPos, mainContentWidth, 20));
-    yPos += 25;
-    for (var ref in resume.value.references) {
-      graphics.drawString(ref.name, boldFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(sidebarWidth + margin, yPos, mainContentWidth, 20));
-      yPos += 15;
-      graphics.drawString(ref.position, normalFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(sidebarWidth + margin, yPos, mainContentWidth, 20));
-      yPos += 15;
-      graphics.drawString('Phone: ${ref.phone}', normalFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(sidebarWidth + margin, yPos, mainContentWidth, 20));
-      yPos += 15;
-      graphics.drawString('Email: ${ref.email}', normalFont, brush: PdfSolidBrush(darkColor), bounds: Rect.fromLTWH(sidebarWidth + margin, yPos, mainContentWidth, 20));
-      yPos += 20;
+    // REFERENCES SECTION
+    if (resume.value.references.isNotEmpty) {
+      drawSectionHeader(graphics, 'REFERENCES', sidebarWidth + contentMargin, yPos, mainContentWidth - 2 * contentMargin, sectionHeaderFont, accentColor, useDarkTheme);
+      yPos += 30;
+
+      // Display references in a horizontal layout if there are 2
+      if (resume.value.references.length == 2) {
+        final double refWidth = (mainContentWidth - 2 * contentMargin) / 2 - 10;
+
+        // First reference (left)
+        drawReference(graphics, resume.value.references[0], sidebarWidth + contentMargin, yPos, refWidth, boldFont, normalFont, primaryColor);
+
+        // Second reference (right)
+        drawReference(graphics, resume.value.references[1], sidebarWidth + contentMargin + refWidth + 20, yPos, refWidth, boldFont, normalFont, primaryColor);
+      } else {
+        // Display references vertically
+        for (var ref in resume.value.references) {
+          drawReference(graphics, ref, sidebarWidth + contentMargin, yPos, mainContentWidth - 2 * contentMargin, boldFont, normalFont, primaryColor);
+          yPos += 70;
+        }
+      }
     }
+
+    // Footer with page number if desired
+    graphics.drawString(
+        'Page 1',
+        smallFont,
+        brush: PdfSolidBrush(PdfColor(150, 150, 150)),
+        bounds: Rect.fromLTWH(0, pageSize.height - 20, pageSize.width, 20),
+        format: PdfStringFormat(alignment: PdfTextAlignment.center)
+    );
 
     final List<int> bytes = await document.save();
     document.dispose();
     await _savePdfAndOpen(bytes, 'resume.pdf');
   }
 
+// Helper functions for common drawing operations
+  void drawSectionHeader(PdfGraphics graphics, String text, double x, double y, double width,
+      PdfFont font, PdfColor color, bool useDarkTheme) {
+    // Draw section title
+    graphics.drawString(
+        text,
+        font,
+        brush: PdfSolidBrush(color),
+        bounds: Rect.fromLTWH(x, y, width, 25)
+    );
+
+    // Draw horizontal line under section title
+    graphics.drawLine(
+        PdfPen(PdfColor(220, 220, 220), width: 1),
+        Offset(x, y + 25),
+        Offset(x + width, y + 25)
+    );
+  }
+
+  void drawContactItem(PdfGraphics graphics, String icon, String text, double x, double y,
+      double width, PdfFont font, PdfColor color) {
+    // Draw icon placeholder
+    graphics.drawString(
+        icon,
+        font,
+        brush: PdfSolidBrush(color),
+        bounds: Rect.fromLTWH(x, y, 15, 20)
+    );
+
+    // Draw text with offset for icon
+    graphics.drawString(
+        text,
+        font,
+        brush: PdfSolidBrush(color),
+        bounds: Rect.fromLTWH(x + 20, y, width - 20, 20)
+    );
+  }
+
+  void drawReference(PdfGraphics graphics, Reference ref, double x, double y, double width,
+      PdfFont nameFont, PdfFont detailsFont, PdfColor textColor) {
+    // Reference name
+    graphics.drawString(
+        ref.name,
+        nameFont,
+        brush: PdfSolidBrush(textColor),
+        bounds: Rect.fromLTWH(x, y, width, 20)
+    );
+    y += 15;
+
+    // Position
+    graphics.drawString(
+        ref.position,
+        detailsFont,
+        brush: PdfSolidBrush(textColor),
+        bounds: Rect.fromLTWH(x, y, width, 20)
+    );
+    y += 15;
+
+    // Phone
+    graphics.drawString(
+        'Phone: ${ref.phone}',
+        detailsFont,
+        brush: PdfSolidBrush(textColor),
+        bounds: Rect.fromLTWH(x, y, width, 20)
+    );
+    y += 15;
+
+    // Email
+    graphics.drawString(
+        'Email: ${ref.email}',
+        detailsFont,
+        brush: PdfSolidBrush(textColor),
+        bounds: Rect.fromLTWH(x, y, width, 20)
+    );
+  }
+
+// Helper function to calculate text height based on width constraints
+  double calculateTextHeight(String text, PdfFont font, double width) {
+    // Rough estimate - in a real implementation, you'd do more precise calculations
+    final int charPerLine = (width / (font.size * 0.6)).floor();
+    final int lines = (text.length / charPerLine).ceil();
+    return lines * (font.size * 1.5);
+  }
   Future<void> _savePdfAndOpen(List<int> bytes, String fileName) async {
     try {
       final Directory directory = await getApplicationDocumentsDirectory();
