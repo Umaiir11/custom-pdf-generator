@@ -4,7 +4,7 @@ import 'controller.dart';
 import 'model.dart';
 
 void main() {
-  Get.put(ResumeController()); // Initialize the controller
+  Get.put(ResumeController());
   runApp(const MyApp());
 }
 
@@ -17,8 +17,9 @@ class MyApp extends StatelessWidget {
       title: 'Modern Resume Generator',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
+        scaffoldBackgroundColor: Colors.grey[100],
       ),
       home: const ResumeInputScreen(),
     );
@@ -36,18 +37,25 @@ class ResumeInputScreen extends StatelessWidget {
         int maxLines = 1,
       }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
         keyboardType: keyboardType ?? TextInputType.text,
         maxLines: maxLines,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: Colors.white70),
+          labelStyle: TextStyle(color: Colors.blue[800]),
           filled: true,
-          fillColor: Colors.white.withOpacity(0.1),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.blue[200]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.blue[800]!),
+          ),
         ),
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(color: Colors.black87),
         onChanged: onChanged,
         validator: validator,
       ),
@@ -57,131 +65,207 @@ class ResumeInputScreen extends StatelessWidget {
   Widget _buildSectionFields(dynamic item, ResumeController controller, String type) {
     if (type == 'education') {
       Education edu = item as Education;
-      return Column(
-        children: [
-          _buildTextField('Degree', (value) {
-            final index = controller.educationList.indexOf(edu);
-            controller.educationList[index] = Education(
-              degree: value,
-              institution: edu.institution,
-              year: edu.year,
-              details: edu.details,
-            );
-            controller.updateResume();
-          }, validator: (value) => value!.isEmpty ? 'Please enter Degree' : null),
-          _buildTextField('Institution', (value) {
-            final index = controller.educationList.indexOf(edu);
-            controller.educationList[index] = Education(
-              degree: edu.degree,
-              institution: value,
-              year: edu.year,
-              details: edu.details,
-            );
-            controller.updateResume();
-          }, validator: (value) => value!.isEmpty ? 'Please enter Institution' : null),
-          _buildTextField('Year', (value) {
-            final index = controller.educationList.indexOf(edu);
-            controller.educationList[index] = Education(
-              degree: edu.degree,
-              institution: edu.institution,
-              year: value,
-              details: edu.details,
-            );
-            controller.updateResume();
-          }, validator: (value) => value!.isEmpty ? 'Please enter Year' : null),
-          _buildTextField('Details (e.g., GPA)', (value) {
-            final index = controller.educationList.indexOf(edu);
-            controller.educationList[index] = Education(
-              degree: edu.degree,
-              institution: edu.institution,
-              year: edu.year,
-              details: value,
-            );
-            controller.updateResume();
-          }),
-          const SizedBox(height: 10),
-        ],
+      return Card(
+        elevation: 2,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              _buildTextField('Period (e.g., 2020-2023)', (value) {
+                final index = controller.educationList.indexOf(edu);
+                controller.educationList[index] = Education(
+                  period: value,
+                  institution: edu.institution,
+                  degree: edu.degree,
+                  gpa: edu.gpa,
+                );
+                controller.updateResume();
+              }, validator: (value) => value!.isEmpty ? 'Please enter Period' : null),
+              _buildTextField('Institution', (value) {
+                final index = controller.educationList.indexOf(edu);
+                controller.educationList[index] = Education(
+                  period: edu.period,
+                  institution: value,
+                  degree: edu.degree,
+                  gpa: edu.gpa,
+                );
+                controller.updateResume();
+              }, validator: (value) => value!.isEmpty ? 'Please enter Institution' : null),
+              _buildTextField('Degree', (value) {
+                final index = controller.educationList.indexOf(edu);
+                controller.educationList[index] = Education(
+                  period: edu.period,
+                  institution: edu.institution,
+                  degree: value,
+                  gpa: edu.gpa,
+                );
+                controller.updateResume();
+              }, validator: (value) => value!.isEmpty ? 'Please enter Degree' : null),
+              _buildTextField('GPA (optional)', (value) {
+                final index = controller.educationList.indexOf(edu);
+                controller.educationList[index] = Education(
+                  period: edu.period,
+                  institution: edu.institution,
+                  degree: edu.degree,
+                  gpa: value,
+                );
+                controller.updateResume();
+              }),
+            ],
+          ),
+        ),
       );
-    } else if (type == 'certification') {
-      Certification cert = item as Certification;
-      return Column(
-        children: [
-          _buildTextField('Certification Name', (value) {
-            final index = controller.certificationsList.indexOf(cert);
-            controller.certificationsList[index] = Certification(
-              name: value,
-              issuer: cert.issuer,
-              year: cert.year,
-            );
-            controller.updateResume();
-          }, validator: (value) => value!.isEmpty ? 'Please enter Certification Name' : null),
-          _buildTextField('Issuer', (value) {
-            final index = controller.certificationsList.indexOf(cert);
-            controller.certificationsList[index] = Certification(
-              name: cert.name,
-              issuer: value,
-              year: cert.year,
-            );
-            controller.updateResume();
-          }, validator: (value) => value!.isEmpty ? 'Please enter Issuer' : null),
-          _buildTextField('Year', (value) {
-            final index = controller.certificationsList.indexOf(cert);
-            controller.certificationsList[index] = Certification(
-              name: cert.name,
-              issuer: cert.issuer,
-              year: value,
-            );
-            controller.updateResume();
-          }, validator: (value) => value!.isEmpty ? 'Please enter Year' : null),
-          const SizedBox(height: 10),
-        ],
+    } else if (type == 'workExperience') {
+      WorkExperience exp = item as WorkExperience;
+      return Card(
+        elevation: 2,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              _buildTextField('Period (e.g., 2020-Present)', (value) {
+                final index = controller.workExperienceList.indexOf(exp);
+                controller.workExperienceList[index] = WorkExperience(
+                  period: value,
+                  company: exp.company,
+                  position: exp.position,
+                  responsibilities: exp.responsibilities,
+                );
+                controller.updateResume();
+              }, validator: (value) => value!.isEmpty ? 'Please enter Period' : null),
+              _buildTextField('Company', (value) {
+                final index = controller.workExperienceList.indexOf(exp);
+                controller.workExperienceList[index] = WorkExperience(
+                  period: exp.period,
+                  company: value,
+                  position: exp.position,
+                  responsibilities: exp.responsibilities,
+                );
+                controller.updateResume();
+              }, validator: (value) => value!.isEmpty ? 'Please enter Company' : null),
+              _buildTextField('Position', (value) {
+                final index = controller.workExperienceList.indexOf(exp);
+                controller.workExperienceList[index] = WorkExperience(
+                  period: exp.period,
+                  company: exp.company,
+                  position: value,
+                  responsibilities: exp.responsibilities,
+                );
+                controller.updateResume();
+              }, validator: (value) => value!.isEmpty ? 'Please enter Position' : null),
+              ...List.generate(exp.responsibilities.length, (i) => _buildTextField('Responsibility ${i + 1}', (value) {
+                final index = controller.workExperienceList.indexOf(exp);
+                exp.responsibilities[i] = value;
+                controller.workExperienceList[index] = WorkExperience(
+                  period: exp.period,
+                  company: exp.company,
+                  position: exp.position,
+                  responsibilities: exp.responsibilities,
+                );
+                controller.updateResume();
+              }, validator: (value) => value!.isEmpty ? 'Please enter Responsibility' : null)),
+              TextButton.icon(
+                onPressed: () {
+                  final index = controller.workExperienceList.indexOf(exp);
+                  exp.responsibilities.add('');
+                  controller.workExperienceList[index] = WorkExperience(
+                    period: exp.period,
+                    company: exp.company,
+                    position: exp.position,
+                    responsibilities: exp.responsibilities,
+                  );
+                  controller.updateResume();
+                },
+                icon: const Icon(Icons.add, color: Colors.blue),
+                label: const Text('Add Responsibility', style: TextStyle(color: Colors.blue)),
+              ),
+            ],
+          ),
+        ),
       );
-    } else if (type == 'project') {
-      Project proj = item as Project;
-      return Column(
-        children: [
-          _buildTextField('Project Title', (value) {
-            final index = controller.projectsList.indexOf(proj);
-            controller.projectsList[index] = Project(
-              title: value,
-              description: proj.description,
-              technologies: proj.technologies,
-              duration: proj.duration,
-            );
-            controller.updateResume();
-          }, validator: (value) => value!.isEmpty ? 'Please enter Project Title' : null),
-          _buildTextField('Description', (value) {
-            final index = controller.projectsList.indexOf(proj);
-            controller.projectsList[index] = Project(
-              title: proj.title,
-              description: value,
-              technologies: proj.technologies,
-              duration: proj.duration,
-            );
-            controller.updateResume();
-          }, maxLines: 3, validator: (value) => value!.isEmpty ? 'Please enter Description' : null),
-          _buildTextField('Technologies', (value) {
-            final index = controller.projectsList.indexOf(proj);
-            controller.projectsList[index] = Project(
-              title: proj.title,
-              description: proj.description,
-              technologies: value,
-              duration: proj.duration,
-            );
-            controller.updateResume();
-          }, validator: (value) => value!.isEmpty ? 'Please enter Technologies' : null),
-          _buildTextField('Duration', (value) {
-            final index = controller.projectsList.indexOf(proj);
-            controller.projectsList[index] = Project(
-              title: proj.title,
-              description: proj.description,
-              technologies: proj.technologies,
-              duration: value,
-            );
-            controller.updateResume();
-          }, validator: (value) => value!.isEmpty ? 'Please enter Duration' : null),
-          const SizedBox(height: 10),
-        ],
+    } else if (type == 'language') {
+      Language lang = item as Language;
+      return Card(
+        elevation: 2,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              _buildTextField('Language', (value) {
+                final index = controller.languagesList.indexOf(lang);
+                controller.languagesList[index] = Language(
+                  name: value,
+                  proficiency: lang.proficiency,
+                );
+                controller.updateResume();
+              }, validator: (value) => value!.isEmpty ? 'Please enter Language' : null),
+              _buildTextField('Proficiency (e.g., Fluent)', (value) {
+                final index = controller.languagesList.indexOf(lang);
+                controller.languagesList[index] = Language(
+                  name: lang.name,
+                  proficiency: value,
+                );
+                controller.updateResume();
+              }, validator: (value) => value!.isEmpty ? 'Please enter Proficiency' : null),
+            ],
+          ),
+        ),
+      );
+    } else if (type == 'reference') {
+      Reference ref = item as Reference;
+      return Card(
+        elevation: 2,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              _buildTextField('Name', (value) {
+                final index = controller.referencesList.indexOf(ref);
+                controller.referencesList[index] = Reference(
+                  name: value,
+                  position: ref.position,
+                  phone: ref.phone,
+                  email: ref.email,
+                );
+                controller.updateResume();
+              }, validator: (value) => value!.isEmpty ? 'Please enter Name' : null),
+              _buildTextField('Position', (value) {
+                final index = controller.referencesList.indexOf(ref);
+                controller.referencesList[index] = Reference(
+                  name: ref.name,
+                  position: value,
+                  phone: ref.phone,
+                  email: ref.email,
+                );
+                controller.updateResume();
+              }, validator: (value) => value!.isEmpty ? 'Please enter Position' : null),
+              _buildTextField('Phone', (value) {
+                final index = controller.referencesList.indexOf(ref);
+                controller.referencesList[index] = Reference(
+                  name: ref.name,
+                  position: ref.position,
+                  phone: value,
+                  email: ref.email,
+                );
+                controller.updateResume();
+              }, validator: (value) => value!.isEmpty ? 'Please enter Phone' : null),
+              _buildTextField('Email', (value) {
+                final index = controller.referencesList.indexOf(ref);
+                controller.referencesList[index] = Reference(
+                  name: ref.name,
+                  position: ref.position,
+                  phone: ref.phone,
+                  email: value,
+                );
+                controller.updateResume();
+              }, validator: (value) => value!.isEmpty ? 'Please enter Email' : null),
+            ],
+          ),
+        ),
       );
     }
     return const SizedBox.shrink();
@@ -193,12 +277,17 @@ class ResumeInputScreen extends StatelessWidget {
     final _formKey = GlobalKey<FormState>();
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Create Your Resume', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue[800],
+        elevation: 0,
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.indigo.shade800, Colors.indigo.shade400],
+            colors: [Colors.blue[50]!, Colors.white],
           ),
         ),
         child: SafeArea(
@@ -209,76 +298,170 @@ class ResumeInputScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Create Your Resume',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField('Full Name', (value) => controller.updateResume(fullName: value), validator: (value) => value!.isEmpty ? 'Please enter Full Name' : null),
-                  _buildTextField('Email', (value) => controller.updateResume(email: value), keyboardType: TextInputType.emailAddress, validator: (value) => value!.isEmpty ? 'Please enter Email' : !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value) ? 'Please enter a valid email' : null),
-                  _buildTextField('Phone', (value) => controller.updateResume(phone: value), keyboardType: TextInputType.phone, validator: (value) => value!.isEmpty ? 'Please enter Phone' : null),
-                  _buildTextField('Address', (value) => controller.updateResume(address: value), validator: (value) => value!.isEmpty ? 'Please enter Address' : null),
-                  _buildTextField('Professional Summary', (value) => controller.updateResume(summary: value), maxLines: 3, validator: (value) => value!.isEmpty ? 'Please enter Summary' : null),
-                  _buildTextField('LinkedIn (optional)', (value) => controller.updateResume(linkedin: value)),
-                  _buildTextField('GitHub (optional)', (value) => controller.updateResume(github: value)),
-
-                  const SizedBox(height: 20),
-                  const Text('Education', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold)),
-                  Obx(() => Column(
-                    children: controller.educationList.map((edu) => _buildSectionFields(edu, controller, 'education')).toList(),
-                  )),
-                  TextButton.icon(
-                    onPressed: () => controller.addEducation('', '', '', ''),
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    label: const Text('Add Education', style: TextStyle(color: Colors.white)),
-                  ),
-
-                  const SizedBox(height: 20),
-                  const Text('Certifications', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold)),
-                  Obx(() => Column(
-                    children: controller.certificationsList.map((cert) => _buildSectionFields(cert, controller, 'certification')).toList(),
-                  )),
-                  TextButton.icon(
-                    onPressed: () => controller.addCertification('', '', ''),
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    label: const Text('Add Certification', style: TextStyle(color: Colors.white)),
-                  ),
-
-                  const SizedBox(height: 20),
-                  const Text('Skills', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold)),
-                  Obx(() => Column(
-                    children: controller.skillsList.map((skill) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: Row(
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: _buildTextField('Skill', (value) {
-                              final index = controller.skillsList.indexOf(skill);
-                              controller.skillsList[index] = value;
-                              controller.updateResume();
-                            }, validator: (value) => value!.isEmpty ? 'Please enter Skill' : null),
+                          const Text('Personal Information', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue)),
+                          const SizedBox(height: 16),
+                          _buildTextField('Full Name', (value) => controller.updateResume(fullName: value), validator: (value) => value!.isEmpty ? 'Please enter Full Name' : null),
+                          _buildTextField('Job Title', (value) => controller.updateResume(jobTitle: value), validator: (value) => value!.isEmpty ? 'Please enter Job Title' : null),
+                          _buildTextField('Phone', (value) => controller.updateResume(phone: value), keyboardType: TextInputType.phone, validator: (value) => value!.isEmpty ? 'Please enter Phone' : null),
+                          _buildTextField('Email', (value) => controller.updateResume(email: value), keyboardType: TextInputType.emailAddress, validator: (value) => value!.isEmpty ? 'Please enter Email' : null),
+                          _buildTextField('Address', (value) => controller.updateResume(address: value), validator: (value) => value!.isEmpty ? 'Please enter Address' : null),
+                          _buildTextField('Website (optional)', (value) => controller.updateResume(website: value)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Profile Summary', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue)),
+                          const SizedBox(height: 16),
+                          _buildTextField('Profile Summary', (value) => controller.updateResume(profileSummary: value), maxLines: 3, validator: (value) => value!.isEmpty ? 'Please enter Profile Summary' : null),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Education', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue)),
+                          const SizedBox(height: 16),
+                          Obx(() => Column(
+                            children: controller.educationList.map((edu) => _buildSectionFields(edu, controller, 'education')).toList(),
+                          )),
+                          TextButton.icon(
+                            onPressed: () => controller.addEducation('', '', '', ''),
+                            icon: const Icon(Icons.add, color: Colors.blue),
+                            label: const Text('Add Education', style: TextStyle(color: Colors.blue)),
                           ),
                         ],
                       ),
-                    )).toList(),
-                  )),
-                  TextButton.icon(
-                    onPressed: () => controller.addSkill(''),
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    label: const Text('Add Skill', style: TextStyle(color: Colors.white)),
+                    ),
                   ),
-
-                  const SizedBox(height: 20),
-                  const Text('Projects', style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold)),
-                  Obx(() => Column(
-                    children: controller.projectsList.map((proj) => _buildSectionFields(proj, controller, 'project')).toList(),
-                  )),
-                  TextButton.icon(
-                    onPressed: () => controller.addProject('', '', '', ''),
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    label: const Text('Add Project', style: TextStyle(color: Colors.white)),
+                  const SizedBox(height: 16),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Work Experience', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue)),
+                          const SizedBox(height: 16),
+                          Obx(() => Column(
+                            children: controller.workExperienceList.map((exp) => _buildSectionFields(exp, controller, 'workExperience')).toList(),
+                          )),
+                          TextButton.icon(
+                            onPressed: () => controller.addWorkExperience('', '', '', ['']),
+                            icon: const Icon(Icons.add, color: Colors.blue),
+                            label: const Text('Add Work Experience', style: TextStyle(color: Colors.blue)),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-
+                  const SizedBox(height: 16),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Skills', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue)),
+                          const SizedBox(height: 16),
+                          Obx(() => Column(
+                            children: controller.skillsList.map((skill) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildTextField('Skill', (value) {
+                                      final index = controller.skillsList.indexOf(skill);
+                                      controller.skillsList[index] = value;
+                                      controller.updateResume();
+                                    }, validator: (value) => value!.isEmpty ? 'Please enter Skill' : null),
+                                  ),
+                                ],
+                              ),
+                            )).toList(),
+                          )),
+                          TextButton.icon(
+                            onPressed: () => controller.addSkill(''),
+                            icon: const Icon(Icons.add, color: Colors.blue),
+                            label: const Text('Add Skill', style: TextStyle(color: Colors.blue)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Languages', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue)),
+                          const SizedBox(height: 16),
+                          Obx(() => Column(
+                            children: controller.languagesList.map((lang) => _buildSectionFields(lang, controller, 'language')).toList(),
+                          )),
+                          TextButton.icon(
+                            onPressed: () => controller.addLanguage('', ''),
+                            icon: const Icon(Icons.add, color: Colors.blue),
+                            label: const Text('Add Language', style: TextStyle(color: Colors.blue)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('References', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue)),
+                          const SizedBox(height: 16),
+                          Obx(() => Column(
+                            children: controller.referencesList.map((ref) => _buildSectionFields(ref, controller, 'reference')).toList(),
+                          )),
+                          TextButton.icon(
+                            onPressed: () => controller.addReference('', '', '', ''),
+                            icon: const Icon(Icons.add, color: Colors.blue),
+                            label: const Text('Add Reference', style: TextStyle(color: Colors.blue)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 20),
                   Center(
                     child: ElevatedButton.icon(
@@ -290,12 +473,12 @@ class ResumeInputScreen extends StatelessWidget {
                       icon: const Icon(Icons.picture_as_pdf),
                       label: const Text('GENERATE RESUME'),
                       style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.indigo.shade800,
-                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.blue[800],
                         padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         elevation: 8,
-                        shadowColor: Colors.black38,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                   ),
